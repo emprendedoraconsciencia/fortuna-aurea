@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FullReport } from '../types';
 import EnergyChart from './EnergyChart';
-import { Diamond, TrendingUp, Sparkles, RefreshCw, Wallet, Lock, CheckCircle, Star, ExternalLink, Heart, Download, Printer } from 'lucide-react';
+import { Diamond, TrendingUp, Sparkles, RefreshCw, Wallet, Lock, CheckCircle, Star, ExternalLink, Heart, Download } from 'lucide-react';
 
 interface ResultDashboardProps {
   report: FullReport;
