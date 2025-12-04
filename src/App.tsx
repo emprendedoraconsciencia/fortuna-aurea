@@ -4,7 +4,7 @@ import { generateFinancialReading, FALLBACK_DATA } from './services/geminiServic
 import InputForm from './components/InputForm';
 import ResultDashboard from './components/ResultDashboard';
 import { FullReport } from './types';
-import { Moon, Sun, Sparkles, CheckCircle, X, Star } from 'lucide-react';
+import { Moon, Sun, Sparkles, CheckCircle, X } from 'lucide-react';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
