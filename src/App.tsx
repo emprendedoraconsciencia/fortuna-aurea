@@ -27,8 +27,25 @@ const App: React.FC = () => {
     setUserName(name);
     setUserEmail(email);
     
-    // Simulación de envío de datos a backend de marketing
-    console.log(`Lead capturado: ${email} - Nombre: ${name}`); 
+    // -------------------------------------------------------------------------
+    // INTEGRACIÓN WEBHOOK (OPCIONAL) - Para guardar emails en System.io/Zapier
+    // -------------------------------------------------------------------------
+    // Si tienes un link de Zapier o Make, ponlo aquí. Si no, déjalo vacío.
+    const WEBHOOK_URL = ""; 
+
+    if (WEBHOOK_URL && name !== "Fortuna Demo") {
+        try {
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, birthDate: date, source: 'Fortuna App' }),
+                mode: 'no-cors' // Modo seguro para evitar errores de CORS en navegadores
+            }).catch(err => console.log('Webhook error', err));
+        } catch (e) {
+            // Ignoramos errores de webhook para no parar la app
+        }
+    }
+    // -------------------------------------------------------------------------
 
     try {
       const lifePath = calculateLifePath(date);
@@ -38,12 +55,10 @@ const App: React.FC = () => {
 
       // OPTIMIZACIÓN DE COSTOS:
       // Si el usuario es el de la DEMO, usamos los datos estáticos (FALLBACK_DATA).
-      // Esto evita llamar a la API de Google y gastar dinero/cuota innecesariamente.
       if (name === "Fortuna Demo") {
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simular tiempo de carga para realismo
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simular tiempo de carga
         analysis = {
             ...FALLBACK_DATA,
-            // Ajustamos el texto del fallback para que coincida con el año objetivo actual
             yearForecast: FALLBACK_DATA.yearForecast.replace("Este año", `Este año ${targetYear}`)
         };
       } else {
@@ -60,7 +75,7 @@ const App: React.FC = () => {
         analysis
       });
 
-      // Mostrar notificación de "Email enviado" tras generar el reporte
+      // Mostrar notificación de "Email enviado"
       setShowToast(true);
 
     } catch (error) {
