@@ -1,7 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIAnalysis } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// CAMBIO IMPORTANTE: Vite usa 'import.meta.env' en lugar de 'process.env'
+// Asegúrate de llamar a la variable VITE_API_KEY en Vercel
+const apiKey = import.meta.env.VITE_API_KEY || ""; 
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 // Datos de respaldo y para DEMO gratuita (sin consumo de API)
 export const FALLBACK_DATA: AIAnalysis = {
@@ -39,6 +42,12 @@ export const generateFinancialReading = async (
   targetYear: number
 ): Promise<AIAnalysis> => {
   
+  // Si no hay API Key configurada, lanzamos error para usar el fallback
+  if (!apiKey) {
+    console.warn("API Key no configurada. Usando datos de demostración.");
+    throw new Error("No API Key");
+  }
+
   const prompt = `
     Actúa como un Coach Espiritual de Abundancia y Numerólogo Intuitivo. Tu audiencia son personas que creen en la energía y lo místico.
 
@@ -112,7 +121,6 @@ export const generateFinancialReading = async (
   } catch (error) {
     console.error("Error generating reading:", error);
     // Return Fallback data extended
-    // Actualizamos el año en el fallback dinámicamente si falla la API
     return {
         ...FALLBACK_DATA,
         yearForecast: FALLBACK_DATA.yearForecast.replace("Este año", `Este año ${targetYear}`)
