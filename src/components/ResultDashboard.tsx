@@ -13,31 +13,30 @@ interface ResultDashboardProps {
 const ResultDashboard: React.FC<ResultDashboardProps> = ({ report, userName, onReset, targetYear }) => {
   const { numerology, analysis } = report;
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [waitingForPayment, setWaitingForPayment] = useState(false);
   
   // ---------------------------------------------------------------------------
-  // CONFIGURACIÓN DE PAGO (HOTMART / SYSTEM.IO / STRIPE)
+  // CONFIGURACIÓN DE PAGO
   // ---------------------------------------------------------------------------
-  // Pega aquí tu enlace de pago real (Checkout Page)
-  const PAYMENT_LINK = "https://pay.hotmart.com/TU_CODIGO_DE_PRODUCTO?checkoutMode=10"; 
+  // Pon aquí tu enlace de pago de System.io o Hotmart
+  const PAYMENT_LINK = "https://emprendedoraconsciencia.systeme.io/fortuna-aurea-pago"; 
   // ---------------------------------------------------------------------------
 
-  const handleUnlockRedirect = () => {
-    // 1. Abrir la pasarela en nueva pestaña
-    window.open(PAYMENT_LINK, '_blank');
-    
-    // 2. Preguntar al usuario si completó el pago
-    // En una integración real (avanzada), esto se haría leyendo un parámetro URL (?paid=true)
-    const confirm = window.confirm(
-        "Se ha abierto la pasarela de pago segura en una nueva pestaña.\n\n" +
-        "1. Completa tu compra en Hotmart/Stripe.\n" +
-        "2. Vuelve a esta pestaña y haz clic en ACEPTAR para ver tu reporte.\n"
-    );
-
-    if(confirm) {
-        setIsUnlocked(true);
-        // Scroll suave hacia arriba para ver el contenido desbloqueado
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleUnlockClick = () => {
+    // 1. Abrir pasarela en nueva pestaña
+    if (PAYMENT_LINK && PAYMENT_LINK.startsWith('http')) {
+        window.open(PAYMENT_LINK, '_blank');
+    } else {
+        alert("Configura el enlace de pago en el código (ResultDashboard.tsx)");
     }
+    // 2. Cambiar estado del botón para pedir confirmación
+    setWaitingForPayment(true);
+  };
+
+  const handleConfirmPayment = () => {
+    setIsUnlocked(true);
+    setWaitingForPayment(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePrint = () => {
@@ -143,19 +142,19 @@ const ResultDashboard: React.FC<ResultDashboardProps> = ({ report, userName, onR
         
         {/* Banner de éxito al desbloquear */}
         {isUnlocked && (
-           <div className="bg-gold-500/10 border border-gold-500/50 rounded-xl p-4 mb-6 flex items-center justify-between animate-fade-in-up print:hidden">
-              <div className="flex items-center gap-3">
-                 <div className="bg-gold-500 rounded-full p-1">
-                    <CheckCircle className="h-5 w-5 text-black" />
+           <div className="bg-gradient-to-r from-gold-500/20 to-amber-500/20 border border-gold-500/50 rounded-xl p-6 mb-6 flex flex-col md:flex-row items-center justify-between animate-fade-in-up print:hidden shadow-lg shadow-gold-900/20">
+              <div className="flex items-center gap-4 mb-4 md:mb-0">
+                 <div className="bg-gold-500 rounded-full p-2 animate-bounce">
+                    <CheckCircle className="h-6 w-6 text-black" />
                  </div>
                  <div>
-                    <h3 className="text-gold-400 font-bold text-sm">Reporte Premium Activado</h3>
-                    <p className="text-gray-400 text-xs">Tienes acceso completo a la guía anual.</p>
+                    <h3 className="text-gold-400 font-bold text-lg">¡Felicidades! Reporte Activado</h3>
+                    <p className="text-gray-300 text-sm">Tu guía de abundancia está lista para ser usada.</p>
                  </div>
               </div>
-              <button onClick={handlePrint} className="bg-mystic-800 hover:bg-mystic-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors border border-white/10">
-                 <Download className="h-4 w-4" />
-                 Descargar PDF
+              <button onClick={handlePrint} className="bg-gold-500 hover:bg-gold-400 text-black px-6 py-3 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg transform hover:scale-105">
+                 <Download className="h-5 w-5" />
+                 Descargar / Imprimir PDF
               </button>
            </div>
         )}
@@ -227,7 +226,10 @@ const ResultDashboard: React.FC<ResultDashboardProps> = ({ report, userName, onR
         {/* The Lock Overlay */}
         {!isUnlocked && (
             <div className="absolute inset-0 z-10 flex items-center justify-center top-20 print:hidden">
-                <div className="bg-mystic-900/95 border border-gold-500/50 p-8 rounded-2xl shadow-2xl max-w-md text-center transform hover:scale-105 transition-transform duration-300 group backdrop-blur-xl">
+                <div className="bg-mystic-900/95 border border-gold-500/50 p-8 rounded-2xl shadow-2xl max-w-md text-center transform hover:scale-105 transition-transform duration-300 group backdrop-blur-xl relative overflow-hidden">
+                    {/* Glow effect */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-50"></div>
+
                     <div className="w-16 h-16 bg-gold-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gold-500/50 group-hover:bg-gold-500/30 transition-colors">
                         <Lock className="h-8 w-8 text-gold-400" />
                     </div>
@@ -242,13 +244,35 @@ const ResultDashboard: React.FC<ResultDashboardProps> = ({ report, userName, onR
                         <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-400"/> Ritual personalizado de prosperidad</li>
                     </ul>
 
-                    <button 
-                        onClick={handleUnlockRedirect}
-                        className="w-full bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-black font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 group-hover:shadow-gold-500/20"
-                    >
-                        <ExternalLink className="h-5 w-5" />
-                        Ver Reporte Completo ($9.99)
-                    </button>
+                    {!waitingForPayment ? (
+                        <button 
+                            onClick={handleUnlockClick}
+                            className="w-full bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-black font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 group-hover:shadow-gold-500/20"
+                        >
+                            <ExternalLink className="h-5 w-5" />
+                            Obtener Reporte Completo ($9.99)
+                        </button>
+                    ) : (
+                        <div className="space-y-3 animate-fade-in">
+                             <div className="text-xs text-gold-300 bg-gold-500/10 p-2 rounded border border-gold-500/30">
+                                Se ha abierto una pestaña segura para el pago.
+                             </div>
+                             <button 
+                                onClick={handleConfirmPayment}
+                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 border border-emerald-400/50"
+                             >
+                                <CheckCircle className="h-5 w-5" />
+                                ¡Ya he realizado el pago!
+                            </button>
+                             <button 
+                                onClick={() => setWaitingForPayment(false)}
+                                className="text-xs text-gray-500 underline hover:text-gray-300"
+                            >
+                                Cancelar / Volver
+                            </button>
+                        </div>
+                    )}
+                    
                     <p className="text-[10px] text-gray-500 mt-3">Pago único y seguro. Acceso inmediato.</p>
                 </div>
             </div>
